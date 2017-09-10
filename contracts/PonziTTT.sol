@@ -139,7 +139,7 @@ contract PonziTTT {
         for (uint j = 0; j < traineeAddresses.length; j++) {
             if (isFinished(traineeAddresses[j])) {
                 traineeAddresses[j].transfer(refundAmount);
-                RefundFairly(msg.sender, traineeAddresses[j], refundAmount);
+                // RefundFairly(msg.sender, traineeAddresses[j], refundAmount);
             }
         }
     

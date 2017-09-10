@@ -175,8 +175,7 @@ contract('PonziTTT', function(accounts) {
         var trainee_one = accounts[1];
         var trainee_two = accounts[2];
         var trainee_three = accounts[3];
-
-        return PonziTTT.new([trainer], 4, 2, 1).then(function(instance) {
+        return PonziTTT.new([trainer], 4, 2, web3.eth.blockNumber + 12).then(function(instance) {
             ponzi = instance;
             return ponzi.register({from: trainee_one, value: web3.toWei(2,'ether')});
         }).then(function() {
