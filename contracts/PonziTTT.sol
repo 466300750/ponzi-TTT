@@ -8,6 +8,8 @@ contract PonziTTT {
     address[256] owners;
     // required lessons
     uint256 required;
+    // required deposit
+    uint256 deposit;
     // index on the list of owners to allow reverse lookup
     mapping(address => uint256) ownerIndex;
     // ================== Owner list ====================
@@ -57,10 +59,15 @@ contract PonziTTT {
         return traineeProgress[_addr] >= required;
     }
 
-    function PonziTTT(address[] _owners, uint256 _required) {
+    function PonziTTT(address[] _owners, uint256 _required, uint256 _deposit) {
         owners[1] = msg.sender;
         ownerIndex[msg.sender] = 1;
         required = _required;
+        if (_deposit != 0) {
+            deposit = _deposit;
+        } else {
+            deposit = 2;
+        }
         for (uint256 i = 0; i < _owners.length; ++i) {
             owners[2 + i] = _owners[i];
             ownerIndex[_owners[i]] = 2 + i;
@@ -72,7 +79,7 @@ contract PonziTTT {
     }
 
     function register() payable notTrainee {
-        require(msg.value == 2 ether);
+        require(msg.value == deposit * 1 ether);
         traineeAddresses.push(msg.sender);
         traineeBalances[msg.sender] = msg.value;
         Registration(msg.sender, msg.value);
@@ -92,7 +99,7 @@ contract PonziTTT {
         Confirmation(msg.sender, _recipient, traineeProgress[_recipient]);
     }
 
-    function checkContractBalance() onlyOwner constant returns (uint256) {
+    function checkContractBalance() constant returns (uint256) {
         return this.balance;
     }
 
