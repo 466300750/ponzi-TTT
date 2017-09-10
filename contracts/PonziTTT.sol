@@ -18,6 +18,8 @@ contract PonziTTT {
     // ================== Trainee list ====================
     mapping(address => uint256) traineeProgress;
 
+    address[] traineeAddresses;
+
     // EVENTS
 
     // logged events:
@@ -26,6 +28,7 @@ contract PonziTTT {
     event Confirmation(address _from, address _to, uint256 _lesson);
     // Funds has refund back (record how much).
     event Refund(address _from, address _to, uint256 _amount);
+    event RefundFairly(address _from, address _to, uint256 _amount);
 
     modifier onlyOwner {
         require(isOwner(msg.sender));
@@ -64,8 +67,13 @@ contract PonziTTT {
         }
     }
 
+    function() payable {
+        register();
+    }
+
     function register() payable notTrainee {
         require(msg.value == 2 ether);
+        traineeAddresses.push(msg.sender);
         traineeBalances[msg.sender] = msg.value;
         Registration(msg.sender, msg.value);
     }
@@ -76,14 +84,6 @@ contract PonziTTT {
 
     function progressOf(address _addr) constant returns (uint256) {
         return traineeProgress[_addr];
-    }
-
-    function checkBalance() onlyTrainee constant returns (uint256) {
-        return traineeBalances[msg.sender];
-    }
-
-    function checkProgress() onlyTrainee constant returns (uint256) {
-        return traineeProgress[msg.sender];
     }
 
     function confirmOnce(address _recipient) onlyOwner {
@@ -102,6 +102,31 @@ contract PonziTTT {
         _recipient.transfer(traineeBalances[_recipient]);
         Refund(msg.sender, _recipient, traineeBalances[_recipient]);
         traineeBalances[_recipient] = 0;
+    }
+
+    function refundFairly() onlyOwner {
+        uint256 finishedCount;
+        
+        for (uint i = 0; i < traineeAddresses.length; i++) {
+            if (isFinished(traineeAddresses[i])) {
+                finishedCount++;
+            }
+            traineeBalances[traineeAddresses[i]] = 0;
+        }
+
+        if (finishedCount == 0) {
+            return;
+        }
+
+        uint256 refundAmount = this.balance/finishedCount;
+
+        for (uint j = 0; j < traineeAddresses.length; j++) {
+            if (isFinished(traineeAddresses[j])) {
+                traineeAddresses[j].transfer(refundAmount);
+                RefundFairly(msg.sender, traineeAddresses[j], refundAmount);
+            }
+        }
+    
     }
 
     function destroy() onlyOwner {
