@@ -10,6 +10,8 @@ contract PonziTTT {
     uint256 required;
     // required deposit
     uint256 deposit;
+    // limit block
+    uint256 limitBlocks;
     // index on the list of owners to allow reverse lookup
     mapping(address => uint256) ownerIndex;
     // ================== Owner list ====================
@@ -59,7 +61,11 @@ contract PonziTTT {
         return traineeProgress[_addr] >= required;
     }
 
-    function PonziTTT(address[] _owners, uint256 _required, uint256 _deposit) {
+    function PonziTTT(
+        address[] _owners,
+        uint256 _required,
+        uint256 _deposit,
+        uint256 _limitBlocks) {
         owners[1] = msg.sender;
         ownerIndex[msg.sender] = 1;
         required = _required;
@@ -68,6 +74,7 @@ contract PonziTTT {
         } else {
             deposit = 2;
         }
+        limitBlocks = _limitBlocks;
         for (uint256 i = 0; i < _owners.length; ++i) {
             owners[2 + i] = _owners[i];
             ownerIndex[_owners[i]] = 2 + i;
@@ -112,6 +119,8 @@ contract PonziTTT {
     }
 
     function refundFairly() onlyOwner {
+        require(block.number > limitBlocks);
+
         uint256 finishedCount;
         
         for (uint i = 0; i < traineeAddresses.length; i++) {
